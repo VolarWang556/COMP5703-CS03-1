@@ -1,0 +1,11 @@
+LHipAngles: BJ, BK, BL
+
+LFootProgressAngles: AR, AS, AT
+
+RFootProgressAngles: FH, FI, FJ
+
+RHipAngles: FZ, GA, GB
+
+LKneeMoment: CE, CF, CG
+
+RKneeMoment: GU, GV, GW
