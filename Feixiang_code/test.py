@@ -23,6 +23,8 @@ for file_name in files_name:
         data_files.append(file_name)
 
 # Find all related attr in model.csv file
+
+
 feature_list = ["LHipAngles", "LFootProgressAngles", "RFootProgressAngles", "RHipAngles", "LKneeMoment", "RKneeMoment"]
 features = []
 for element in feature_list:
@@ -35,8 +37,6 @@ for element in feature_list:
     # attr.append(element + "_X''") # Second derivative
     # attr.append(element + "_Y''")
     # attr.append(element + "_Z''")
-
-
 def read_csv(filepath, feature):
     arr = pd.read_csv(filepath).loc[:, feature].values
     return arr
@@ -67,5 +67,4 @@ def collate_fn(batch):
 dataset = MotionDataset(files, features)
 dataloader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=collate_fn)
 
-example_batch = next(iter(dataloader))
 
