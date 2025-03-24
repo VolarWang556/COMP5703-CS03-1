@@ -21,6 +21,8 @@ for file_name in files_name:
         files.append(file_name[:-9])
     else:
         data_files.append(file_name)
+        
+s = "sdfsdfsdfsd"
 
 # Find all related attr in model.csv file
 
