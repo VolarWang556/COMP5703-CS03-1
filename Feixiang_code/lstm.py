@@ -5,9 +5,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader, random_split
-from torch.nn.utils.rnn import pad_sequence
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pad_packed_sequence
 from sklearn.model_selection import train_test_split
-from model import PositionalEncoding, TransformerModel
 
 # 设备设置
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -76,26 +75,42 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
 
+# 定义 BiLSTM 模型
+class BiLSTM(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers, output_size):
+        super(BiLSTM, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
+        self.fc = nn.Linear(hidden_size * 2, output_size)  # hidden_size * 2 适配双向LSTM
+
+    def forward(self, x, lengths):
+        packed_input = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
+        packed_output, _ = self.lstm(packed_input)
+        output, _ = pad_packed_sequence(packed_output, batch_first=True)
+        output = self.fc(output)
+        return output
+
+
 # 初始化模型参数
 input_size = pd.read_csv(files[0] + "trajectory.csv").shape[1] - 1  # 排除 Trajectory 列
-d_model = 512  # Transformer 中的特征维度
-nhead = 8
+hidden_size = 128
 num_layers = 2
-dropout = 0.2
-learning_rate = 0.00005
 output_size = len(features)
 
-model = TransformerModel(input_size=input_size, d_model=d_model, nhead=nhead, num_layers=num_layers,
-                         output_size=output_size, dropout=dropout).to(device)
+# **模型迁移到 GPU**
+model = BiLSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, output_size=output_size).to(device)
+
+# **损失函数迁移到 GPU**
 criterion = nn.MSELoss().to(device)
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # **训练**
 epochs = 50
 for epoch in range(epochs):
-    model.train()
+    model.train()  # 设置为训练模式
     total_loss = 0.0
     for batch in train_dataloader:
+
+        # **将数据迁移到 GPU**
         inputs, labels, lengths = batch
         inputs, labels, lengths = inputs.to(device), labels.to(device), lengths.to(device)
 
@@ -106,10 +121,11 @@ for epoch in range(epochs):
         optimizer.step()
 
         total_loss += loss.item()
+
     print(f"Epoch [{epoch + 1}/{epochs}], Loss: {total_loss / len(train_dataloader):.4f}")
 
 # **测试**
-model.eval()
+model.eval()  # 设置为评估模式
 total_test_loss = 0.0
 with torch.no_grad():
     for batch in test_dataloader:
@@ -119,5 +135,5 @@ with torch.no_grad():
         loss = criterion(outputs, labels)
         total_test_loss += loss.item()
 
+# 输出测试集的损失
 print(f"Test Loss: {total_test_loss / len(test_dataloader):.4f}")
-
