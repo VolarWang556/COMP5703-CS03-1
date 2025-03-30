@@ -79,10 +79,10 @@ test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False,
 # 初始化模型参数
 input_size = pd.read_csv(files[0] + "trajectory.csv").shape[1] - 1  # 排除 Trajectory 列
 d_model = 512  # Transformer 中的特征维度
-nhead = 8
-num_layers = 2
-dropout = 0.2
-learning_rate = 0.00005
+nhead = 32
+num_layers = 4
+dropout = 0.1
+learning_rate = 0.0001
 output_size = len(features)
 
 model = TransformerModel(input_size=input_size, d_model=d_model, nhead=nhead, num_layers=num_layers,
@@ -90,7 +90,7 @@ model = TransformerModel(input_size=input_size, d_model=d_model, nhead=nhead, nu
 criterion = nn.MSELoss().to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-# **训练**
+# training
 epochs = 50
 for epoch in range(epochs):
     model.train()
@@ -108,7 +108,7 @@ for epoch in range(epochs):
         total_loss += loss.item()
     print(f"Epoch [{epoch + 1}/{epochs}], Loss: {total_loss / len(train_dataloader):.4f}")
 
-# **测试**
+# testing
 model.eval()
 total_test_loss = 0.0
 with torch.no_grad():

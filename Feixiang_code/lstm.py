@@ -80,7 +80,7 @@ class BiLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, output_size):
         super(BiLSTM, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
-        self.fc = nn.Linear(hidden_size * 2, output_size)  # hidden_size * 2 适配双向LSTM
+        self.fc = nn.Linear(hidden_size * 2, output_size)  # hidden_size * 2 Fit Bi-LSTM
 
     def forward(self, x, lengths):
         packed_input = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
