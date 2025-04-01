@@ -14,7 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # 设置数据路径
-path = "D:/dataset/COMP5703/dataset"
+path = "D:/dataset/COMP5703/dataset3"
 os.chdir(path)
 files_name = os.listdir(path)
 model_files = []
@@ -30,8 +30,8 @@ for file_name in files_name:
 
 # 选取需要的特征
 # feature_list = ["LHipAngles", "LFootProgressAngles", "RFootProgressAngles", "RHipAngles", "LKneeMoment", "RKneeMoment"]
-feature_list = ["LHipAngles"]
-features = [f"{element}_{axis}" for element in feature_list for axis in ["X", "Y", "Z"]]
+feature_list = ["KneeMoment"]
+features = [f"{element}_{axis}" for element in feature_list for axis in ["Y"]]
 
 
 def read_csv(filepath, feature):
@@ -82,7 +82,7 @@ d_model = 512  # Transformer 中的特征维度
 nhead = 32
 num_layers = 4
 dropout = 0.1
-learning_rate = 0.0001
+learning_rate = 0.00005
 output_size = len(features)
 
 model = TransformerModel(input_size=input_size, d_model=d_model, nhead=nhead, num_layers=num_layers,
@@ -91,7 +91,7 @@ criterion = nn.MSELoss().to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # training
-epochs = 50
+epochs = 5
 for epoch in range(epochs):
     model.train()
     total_loss = 0.0

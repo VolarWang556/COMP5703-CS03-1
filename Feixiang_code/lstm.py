@@ -13,7 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # 设置数据路径
-path = "D:/dataset/COMP5703/dataset"
+path = "D:/dataset/COMP5703/dataset3"
 os.chdir(path)
 files_name = os.listdir(path)
 model_files = []
@@ -29,8 +29,8 @@ for file_name in files_name:
 
 # 选取需要的特征
 # feature_list = ["LHipAngles", "LFootProgressAngles", "RFootProgressAngles", "RHipAngles", "LKneeMoment", "RKneeMoment"]
-feature_list = ["LHipAngles"]
-features = [f"{element}_{axis}" for element in feature_list for axis in ["X", "Y", "Z"]]
+feature_list = ["KneeMoment"]
+features = [f"{element}_{axis}" for element in feature_list for axis in ["Y"]]
 
 
 def read_csv(filepath, feature):
