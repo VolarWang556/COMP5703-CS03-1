@@ -93,7 +93,7 @@ class BiLSTM(nn.Module):
 # 初始化模型参数
 input_size = pd.read_csv(files[0] + "trajectory.csv").shape[1] - 1  # 排除 Trajectory 列
 hidden_size = 128
-num_layers = 1
+num_layers = 2
 output_size = len(features)
 
 # **模型迁移到 GPU**
@@ -104,7 +104,7 @@ criterion = nn.MSELoss().to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # **训练**
-epochs = 50
+epochs = 25
 for epoch in range(epochs):
     model.train()  # 设置为训练模式
     total_loss = 0.0
