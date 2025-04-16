@@ -93,11 +93,13 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hidden_size * 2, output_size)  # hidden_size * 2 Fit Bi-LSTM
+        self.dropout = nn.Dropout(0.3)
 
     def forward(self, x, lengths):
         packed_input = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
         packed_output, _ = self.lstm(packed_input)
         output, _ = pad_packed_sequence(packed_output, batch_first=True)
+        output = self.dropout(output)
         output = self.fc(output)
         return output
 
