@@ -107,10 +107,10 @@ class PointNetEncoder(nn.Module):
         self.stn = STN3d(channel)
         self.conv1 = nn.Conv1d(channel, 64, 1)
         self.conv2 = nn.Conv1d(64, 128, 1)
-        self.conv3 = nn.Conv1d(128, 1024, 1)
+        self.conv3 = nn.Conv1d(128, 256, 1)
         self.bn1 = nn.BatchNorm1d(64)
         self.bn2 = nn.BatchNorm1d(128)
-        self.bn3 = nn.BatchNorm1d(1024)
+        # self.bn3 = nn.BatchNorm1d(256)
         self.global_feat = global_feat
         self.feature_transform = feature_transform
 
@@ -123,9 +123,9 @@ class PointNetEncoder(nn.Module):
         x = x.transpose(2, 1)  # [B, 9, N]
         x = F.relu(self.bn1(self.conv1(x)))  # [B, 64, N]
         x = F.relu(self.bn2(self.conv2(x)))  # [B, 128, N]
-        x = self.bn3(self.conv3(x))  # [B, 1024, N]
-        x = torch.max(x, 2, keepdim=True)[0]  # [B, 1024, 1]
-        x = x.view(B, 1024)  # [B, 1024]
+        # x = self.bn3(self.conv3(x))  # [B, 1024, N]
+        x = torch.max(x, 2, keepdim=True)[0]  # [B, 128, 1]
+        x = x.view(B, 128)  # [B, 128]
         return x, trans, None
 
 
@@ -177,7 +177,7 @@ class FullModel(nn.Module):
 ##############################################
 # 假设预训练权重文件存在
 pointnet = PointNetEncoder(global_feat=True, feature_transform=False, channel=9).to(device)
-lstm_input_size = 1024  # 与PointNet全局特征输出匹配
+lstm_input_size = 128  # 与CNN全局特征输出匹配
 hidden_size = 64
 num_layers = 2
 output_size = len(features)  # 根据目标输出设定
@@ -293,12 +293,22 @@ with torch.no_grad():
                 back_half_pred.append(back_pred[max_idx_back])
                 back_half_true.append(back_true[max_idx_back])
 
+Front_MSE = 0
+for i in range(0, len(front_half_true)):
+    Front_MSE += (front_half_pred[i] - front_half_true[i])**2
+Back_MSE = 0
+for i in range(0, len(back_half_true)):
+    Back_MSE += (back_half_pred[i] - back_half_true[i])**2
+Front_MSE = Front_MSE/len(front_half_true)
+Back_MSE = Back_MSE/len(back_half_true)
 # 输出结果
 print(f"Test Loss (Overall MSE): {total_test_loss / len(test_dataloader):.4f}")
 print(f"Front Half Max Pred Avg: {np.mean(front_half_pred):.4f}")
 print(f"Front Half Max True Avg: {np.mean(front_half_true):.4f}")
 print(f"Back Half Max Pred Avg: {np.mean(back_half_pred):.4f}")
 print(f"Back Half Max True Avg: {np.mean(back_half_true):.4f}")
+print(f"Back MSE: {Back_MSE:.4f}")
+print(f"Front MSE: {Front_MSE:.4f}")
 
 
 model.eval()

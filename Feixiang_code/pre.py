@@ -2,18 +2,20 @@ import os
 import pandas as pd
 
 # 设置源文件夹和目标文件夹路径
-source_folder = "D:/dataset/COMP5703/dataset"  # 根据实际情况修改
-target_folder = "D:/dataset/COMP5703/dataset3"
+source_folder = "D:/dataset/COMP5703/datasetX/val"  # 根据实际情况修改
+target_folder = "D:/dataset/COMP5703/datasetF/val"
 os.makedirs(target_folder, exist_ok=True)
 
 # 获取所有以 _trajectory.csv 结尾的文件
-files = [f for f in os.listdir(source_folder) if f.endswith("_model.csv")]
+files = [f for f in os.listdir(source_folder) if f.endswith("_trajectory.csv")]
 if not files:
     print("没有找到任何以 _trajectory.csv 结尾的文件")
     exit()
 
 # 保存每个文件处理后的DataFrame和对应的特征集合
 processed_dfs = {}
+
+
 features_list = []
 
 def process_columns(df, prefix):

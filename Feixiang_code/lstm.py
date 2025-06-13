@@ -14,7 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
 # 设置数据路径
-path = "D:/dataset/COMP5703/dataset3"
+path = "D:/dataset/COMP5703/dataset4"
 os.chdir(path)
 files_name = os.listdir(path)
 model_files = []
@@ -116,75 +116,8 @@ criterion = nn.MSELoss().to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # **训练**
-epochs = 50
-# for epoch in range(epochs):
-#     model.train()  # 设置为训练模式
-#     total_loss = 0.0
-#     for batch in train_dataloader:
-#
-#         # **将数据迁移到 GPU**
-#
-#         inputs, labels, lengths = batch
-#         inputs, labels, lengths = inputs.to(device), labels.to(device), lengths.to(device)
-#
-#         optimizer.zero_grad()
-#         outputs = model(inputs, lengths)
-#         loss = criterion(outputs, labels)
-#         loss.backward()
-#         optimizer.step()
-#
-#         total_loss += loss.item()
-#
-#     print(f"Epoch [{epoch + 1}/{epochs}], Loss: {total_loss / len(train_dataloader):.4f}")
-#
-# # **测试**
-# model.eval()  # 设置为评估模式
-# total_test_loss = 0.0
-# with torch.no_grad():
-#     for batch in test_dataloader:
-#         inputs, labels, lengths = batch
-#         inputs, labels, lengths = inputs.to(device), labels.to(device), lengths.to(device)
-#         outputs = model(inputs, lengths)
-#         loss = criterion(outputs, labels)
-#         total_test_loss += loss.item()
-#
-# # 输出测试集的损失
-# print(f"Test Loss: {total_test_loss / len(test_dataloader):.4f}")
-#
-# import matplotlib.pyplot as plt
-#
-# # 可视化一个样本的真实值与预测值
-# model.eval()
-# with torch.no_grad():
-#     # 拿一个 batch 中第一个样本
-#     for batch in test_dataloader:
-#         inputs, labels, lengths = batch
-#         inputs, labels, lengths = inputs.to(device), labels.to(device), lengths.to(device)
-#         outputs = model(inputs, lengths)
-#
-#         # 只看第一个样本
-#         pred = outputs[0].cpu().numpy()
-#         true = labels[0].cpu().numpy()
-#
-#         # 截取到有效长度，避免 padding 的影响
-#         valid_len = lengths[0].item()
-#         pred = pred[:valid_len, 0]  # 取第一维度值
-#         true = true[:valid_len, 0]
-#
-#         # 绘图
-#         plt.figure(figsize=(10, 5))
-#         plt.plot(true, label="True", color="blue")
-#         plt.plot(pred, label="Predicted", color="red", linestyle='--')
-#         plt.title("True vs Predicted Output")
-#         plt.xlabel("Time Step")
-#         plt.ylabel("Value")
-#         plt.legend()
-#         plt.grid(True)
-#         plt.tight_layout()
-#         plt.show()
-#
-#         break  # 只画一个 batch 就够了
-#
+epochs = 1
+
 for epoch in range(epochs):
     model.train()
     total_train_loss = 0.0
@@ -306,4 +239,57 @@ with torch.no_grad():
         plt.show()
 
         break  # 只画一个 batch 就够了
-
+# all_dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+# model.eval()
+# results = []  # 用于存储每个样本的评估结果
+#
+# with torch.no_grad():
+#     for batch in all_dataloader:
+#         inputs, labels, lengths, file_names = batch
+#         inputs, labels, lengths = inputs.to(device), labels.to(device), lengths.to(device)
+#         outputs = model(inputs, lengths)
+#
+#         # 遍历当前 batch 中的每个样本
+#         batch_size = inputs.size(0)
+#         for i in range(batch_size):
+#             valid_len = lengths[i].item()
+#             # 注意这里取输出及真实值的第一维度（假设只有一个特征，即 features 长度为 1）
+#             pred_seq = outputs[i, :valid_len, 0].cpu().numpy()
+#             true_seq = labels[i, :valid_len, 0].cpu().numpy()
+#             half = valid_len // 2
+#
+#             # 计算前50%（若数据为空则使用 nan）
+#             if half > 0:
+#                 front_true = true_seq[:half]
+#                 front_pred = pred_seq[:half]
+#                 front_max_true = float(front_true[np.argmax(front_true)])
+#                 front_max_pred = float(front_pred[np.argmax(front_true)])
+#             else:
+#                 front_max_true = np.nan
+#                 front_max_pred = np.nan
+#
+#             # 计算后50%
+#             if valid_len - half > 0:
+#                 back_true = true_seq[half:]
+#                 back_pred = pred_seq[half:]
+#                 back_max_true = float(back_true[np.argmax(back_true)])
+#                 back_max_pred = float(back_pred[np.argmax(back_true)])
+#             else:
+#                 back_max_true = np.nan
+#                 back_max_pred = np.nan
+#
+#             results.append({
+#                 "FileName": file_names[i],
+#                 "Front_Half_Max_True": front_max_true,
+#                 "Front_Half_Max_Pred": front_max_pred,
+#                 "Back_Half_Max_True": back_max_true,
+#                 "Back_Half_Max_Pred": back_max_pred
+#             })
+#
+# # 保存 CSV 文件
+# results_df = pd.DataFrame(results)
+# path = "D:/dataset/COMP5703"
+# os.chdir(path)
+# torch.save(model.state_dict(), "model.pth")
+# results_df.to_csv("evaluation_results.csv", index=False)
+# print("CSV 文件已保存到 evaluation_results.csv")

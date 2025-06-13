@@ -119,8 +119,8 @@ alpha = 0.05  # 可根据需要调整
 class SegmentedMaxLoss(nn.Module):
     def __init__(self, alpha=0.5, reduction='mean'):
         super().__init__()
-        self.alpha = alpha  # 分段损失的权重系数
-        self.mse_loss = nn.MSELoss(reduction=reduction)  # 基础MSE损失函数[1](@ref)
+        self.alpha = alpha
+        self.mse_loss = nn.MSELoss(reduction=reduction)
         self.reduction = reduction
 
     def forward(self, outputs, labels, lengths):
@@ -129,22 +129,20 @@ class SegmentedMaxLoss(nn.Module):
         batch_size = outputs.size(0)
         max_loss_first, max_loss_second = 0.0, 0.0
 
-        # 遍历每个样本处理变长序列
+
         for i in range(batch_size):
             seq_len = lengths[i].item()
             if seq_len < 2:
-                continue  # 跳过长度不足的序列
+                continue
 
             half = seq_len // 2
-            out_seq = outputs[i, :seq_len, :]  # (seq_len, features)
+            out_seq = outputs[i, :seq_len, :]
             lab_seq = labels[i, :seq_len, :]
 
-            # 前半段最大值误差（向量化计算）
             max_out_first, _ = torch.max(out_seq[:half], dim=0)  # (features,)
             max_lab_first, _ = torch.max(lab_seq[:half], dim=0)
             loss_first = torch.mean((max_out_first - max_lab_first) ** 2)
 
-            # 后半段最大值误差
             max_out_second, _ = torch.max(out_seq[half:], dim=0)
             max_lab_second, _ = torch.max(lab_seq[half:], dim=0)
             loss_second = torch.mean((max_out_second - max_lab_second) ** 2)
@@ -152,12 +150,10 @@ class SegmentedMaxLoss(nn.Module):
             max_loss_first += loss_first
             max_loss_second += loss_second
 
-        # 平均分段损失
         if batch_size > 0:
             max_loss_first /= batch_size
             max_loss_second /= batch_size
 
-        # 总损失 = 基础损失 + 加权分段损失[7](@ref)
         total_loss = base_loss + self.alpha * (max_loss_first + max_loss_second)
         return total_loss
 epochs = 2
